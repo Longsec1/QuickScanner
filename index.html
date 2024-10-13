@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickScanner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #333;
+    }
+
+    h1 {
+      margin: 20px;
+    }
+
+    .container {
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .button {
+      padding: 12px 24px;
+      font-size: 16px;
+      margin: 10px;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #555;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: #333;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 140px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%; 
+      left: 50%;
+      margin-left: -70px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    #qrResultCard, #historyCard {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      margin-top: 15px;
+    }
+
+    video, canvas {
+      width: 300px;
+      height: 300px;
+      border: 2px solid #333;
+      margin-bottom: 10px;
+    }
+
+    #darkModeToggle {
+      background-color: #000;
+      color: #fff;
+    }
+
+    #flashlightToggle {
+      background-color: #ff9800;
+    }
+
+    #downloadQRCode {
+      background-color: #4caf50;
+    }
+
+    #copyToClipboard {
+      background-color: #2196F3;
+    }
+
+    #clearHistory {
+      background-color: #F44336;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Home Page -->
+  <div class="container" id="homePage">
+    <h1>Welcome to QuickScanner</h1>
+    <button id="cameraButton" class="button tooltip">Scan with Camera
+      <span class="tooltiptext">Activate camera for scanning</span>
+    </button>
+    <button id="imageUploadButton" class="button tooltip">Upload Image
+      <span class="tooltiptext">Upload a QR code image</span>
+    </button>
+    <button id="qrGenerateButton" class="button tooltip">Generate QR Code
+      <span class="tooltiptext">Create a QR code</span>
+    </button>
+    <button id="darkModeToggle" class="button">Toggle Dark Mode</button>
+
+    <div class="container" id="historyCard">
+      <h2>Scan History</h2>
+      <ul id="historyList"></ul>
+      <button id="clearHistory" class="button">Clear History</button>
+    </div>
+  </div>
+
+  <!-- Camera Scanning Page -->
+  <div class="container hidden" id="cameraPage">
+    <h1>Camera QR Code Scanner</h1>
+    <div id="spinner" class="spinner hidden"></div>
+    <video id="video" autoplay></video>
+    <canvas id="canvas" hidden></canvas>
+    <button id="flashlightToggle" class="button">Toggle Flashlight</button>
+    <div id="qrResultCard">
+      <p id="qrResult">No QR code scanned yet</p>
+      <button id="copyToClipboard" class="button">Copy to Clipboard</button>
+    </div>
+    <button id="backToHomeFromCamera" class="button">Back to Home</button>
+  </div>
+
+  <!-- Include jsQR and QRCode generator libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script>
+    const homePage = document.getElementById('homePage');
+    const cameraPage = document.getElementById('cameraPage');
+    const videoElement = document.getElementById('video');
+    const qrResult = document.getElementById('qrResult');
+    const historyList = document.getElementById('historyList');
+    const spinner = document.getElementById('spinner');
+    const copyToClipboard = document.getElementById('copyToClipboard');
+    let scanHistory = [];
+    let darkMode = false;
+
+    // Camera QR Scanning
+    document.getElementById('cameraButton').addEventListener('click', () => {
+      homePage.classList.add('hidden');
+      cameraPage.classList.remove('hidden');
+      spinner.classList.remove('hidden');
+      startCamera();
+    });
+
+    function startCamera() {
+      // Logic to start the camera and scan QR codes...
+      // Hide spinner once camera feed is ready
+      setTimeout(() => {
+        spinner.classList.add('hidden');
+      }, 2000); // Simulating camera setup delay
+    }
+
+    // Copy to Clipboard
+    copyToClipboard.addEventListener('click', () => {
+      navigator.clipboard.writeText(qrResult.textContent).then(() => {
+        alert('QR Code text copied to clipboard');
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    });
+
+    // Toggle Dark Mode
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      darkMode = !darkMode;
+      document.body.style.backgroundColor = darkMode ? '#333' : '#f4f4f9';
+      document.body.style.color = darkMode ? '#fff' : '#333';
+    });
+
+    // History Handling
+    function updateHistory(text) {
+      scanHistory.push(text);
+      if (scanHistory.length > 10) {
+        scanHistory.shift(); // Limit history to 10 items
+      }
+      historyList.innerHTML = scanHistory.map(item => `<li>${item}</li>`).join('');
+    }
+
+    document.getElementById('clearHistory').addEventListener('click', () => {
+      scanHistory = [];
+      historyList.innerHTML = '';
+    });
+
+    // Additional features for flashlight toggle and error handling
+    // will go here...
+  </script>
+
+</body>
+</html>
